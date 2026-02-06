@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lao6 电脑壁纸站</title>
+    <link rel="icon" href="icon.ico" type="image/x-icon">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "微软雅黑", sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        /* ===== 浅色模式【默认】主题配色 ===== */
+        body.light {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+        body.light .top-bar {
+            background-color: #1a1a1a;
+        }
+        body.light .wallpaper-item {
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        body.light .preview-info-box {
+            background-color: #f9f9f9;
+        }
+        body.light .info-item {
+            color: #333333;
+        }
+        body.light .info-item span {
+            color: #000000;
+        }
+        body.light #searchInput {
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+        }
+        body.light #searchInput::placeholder {
+            color: #ccc;
+        }
+
+        /* ===== 深色模式主题配色 ===== */
+        body.dark {
+            background-color: #121212;
+            color: #e9ecef;
+        }
+        body.dark .top-bar {
+            background-color: #0a0a0a;
+        }
+        body.dark .wallpaper-item {
+            background: #1e1e1e;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        body.dark .preview-modal {
+            background-color: rgba(0,0,0,0.95);
+        }
+        body.dark .preview-container {
+            background: #1e1e1e;
+        }
+        body.dark .preview-info-box {
+            background-color: #252525;
+        }
+        body.dark .info-item {
+            color: #d1d1d1;
+        }
+        body.dark .info-item span {
+            color: #ffffff;
+        }
+        body.dark #searchInput {
+            background-color: #222;
+            color: #fff;
+            border: 1px solid #444;
+        }
+        body.dark #searchInput::placeholder {
+            color: #999;
+        }
+
+        /* ========== 顶部小黑条样式 ★核心新增：正中央搜索框★ ========== */
+        .top-bar {
+            width: 100%;
+            height: 55px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+            gap: 20px;
+        }
+        .top-bar .title {
+            color: #ffffff;
+            font-size: 19px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        /* 正中央 搜索框 核心样式 */
+        .search-box{
+            flex: 1;
+            max-width: 500px;
+            margin: 0 10px;
+        }
+        #searchInput {
+            width: 100%;
+            height: 36px;
+            border-radius: 4px;
+            padding: 0 15px;
+            font-size: 14px;
+            outline: none;
+        }
+        /* 右侧按钮组：模式切换按钮 + 投稿按钮 */
+        .top-bar .btn-group{
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            white-space: nowrap;
+        }
+        .theme-switch {
+            color: #fff;
+            background-color: #444;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .theme-switch:hover {
+            background-color: #555;
+        }
+        .submit-btn {
+            color: #fff;
+            background-color: #444;
+            border: none;
+            padding: 6px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .submit-btn:active {
+            background-color: #444;
+        }
+
+        /* ========== 壁纸图片列表自适应布局 ========== */
+        .wallpaper-list {
+            width: 95%;
+            margin: 20px auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .wallpaper-item {
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+            display: block;
+        }
+        .wallpaper-item.hide {
+            display: none;
+        }
+        .wallpaper-item:hover {
+            transform: scale(1.02);
+        }
+        .wallpaper-item img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* ========== 图片预览弹窗+右上角关闭× ========== */
+        .preview-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .preview-modal.show {
+            display: flex;
+        }
+        .preview-container {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            height: 90%;
+            display: flex;
+            gap: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 40px;
+            height: 40px;
+            background-color: #00000080;
+            color: #ffffff;
+            border: none;
+            border-radius: 50%;
+            font-size: 22px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .close-btn:hover {
+            background-color: #ff3333;
+        }
+        .preview-img-box {
+            flex: 3;
+            height: 100%;
+        }
+        .preview-img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .preview-info-box {
+            flex: 1;
+            height: 100%;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+        .download-btn {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 12px 0;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        .download-btn:hover {
+            background-color: #218838;
+        }
+        .info-item {
+            font-size: 15px;
+            line-height: 1.8;
+        }
+        .info-item span {
+            font-weight: bold;
+        }
+
+        /* ========== 手机端适配优化 ========== */
+        @media (max-width: 768px) {
+            .preview-container {
+                flex-direction: column;
+                height: auto;
+                max-height: 90%;
+                overflow-y: auto;
+            }
+            .preview-img-box {
+                height: 300px;
+            }
+            .wallpaper-list {
+                grid-template-columns: repeat(auto-fill, minmax(100%, 1fr));
+            }
+            .close-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 20px;
+            }
+            .top-bar {
+                height: auto;
+                padding: 10px 20px;
+                flex-wrap: wrap;
+            }
+            .search-box {
+                width: 100%;
+                max-width: none;
+                margin: 10px 0;
+                order: 3;
+            }
+        }
+    </style>
+</head>
+<body class="light">
+    <div class="top-bar">
+        <div class="title">lao6 电脑壁纸站</div>
+        <!-- ★核心新增：小黑条正中央 搜索框★ -->
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="搜索壁纸">
+        </div>
+        <div class="btn-group">
+            <button class="theme-switch" id="themeSwitchBtn">切换深色模式</button>
+            <button class="submit-btn">壁纸投稿(4:3)</button>
+        </div>
+    </div>
+
+    <div class="wallpaper-list">
+        <!-- 示例：1.jpg 壁纸项 【增删改都在这里，方式不变】 -->
+        <div class="wallpaper-item" 
+             data-img="马銮湾湿地公园1.jpg" 
+             data-time="2026-01-10" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市集美区马銮湾湿地公园">
+            <img src="马銮湾湿地公园1.jpg" alt="电脑壁纸">
+        </div>
+        <!-- 示例：1.jpg 壁纸项 【增删改都在这里，方式不变】 -->
+        <div class="wallpaper-item" 
+             data-img="马銮湾湿地公园2.jpg" 
+             data-time="2026-01-10" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市集美区马銮湾湿地公园">
+            <img src="马銮湾湿地公园2.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="马銮湾湿地公园3.jpg" 
+             data-time="2026-01-17" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市集美区马銮湾湿地公园">
+            <img src="马銮湾湿地公园3.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="马銮湾湿地公园4.jpg" 
+             data-time="2026-01-17" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市集美区马銮湾湿地公园">
+            <img src="马銮湾湿地公园4.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="马銮湾湿地公园5.jpg" 
+             data-time="2026-01-17" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市集美区马銮湾湿地公园">
+            <img src="马銮湾湿地公园5.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="马銮湾湿地公园6.jpg" 
+             data-time="2026-01-17" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市集美区马銮湾湿地公园">
+            <img src="马銮湾湿地公园6.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="马銮湾湿地公园7.jpg" 
+             data-time="2026-01-17" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市集美区马銮湾湿地公园">
+            <img src="马銮湾湿地公园7.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="马銮湾湿地公园8.jpg" 
+             data-time="2025-11-16" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市集美区马銮湾湿地公园">
+            <img src="马銮湾湿地公园8.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="漳州云洞岩1.jpg" 
+             data-time="2025-11-09" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省漳州云洞岩风景区">
+            <img src="漳州云洞岩1.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="龙舟池南堤公园1.jpg" 
+             data-time="2025-12-07" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市龙舟池南堤公园">
+            <img src="龙舟池南堤公园1.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="龙舟池南堤公园2.jpg" 
+             data-time="2025-12-07" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市龙舟池南堤公园">
+            <img src="龙舟池南堤公园2.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="龙舟池南堤公园3.jpg" 
+             data-time="2025-12-07" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市龙舟池南堤公园">
+            <img src="龙舟池南堤公园3.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="龙舟池南堤公园4.jpg" 
+             data-time="2025-12-07" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市龙舟池南堤公园">
+            <img src="龙舟池南堤公园4.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="园博苑1.jpg" 
+             data-time="2025-02-04" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市园博苑">
+            <img src="园博苑1.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="园博苑2.jpg" 
+             data-time="2025-02-04" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市园博苑">
+            <img src="园博苑2.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="园博苑3.jpg" 
+             data-time="2025-02-04" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市园博苑">
+            <img src="园博苑3.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="园博苑4.jpg" 
+             data-time="2025-10-07" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市园博苑">
+            <img src="园博苑4.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="李林村1.jpg" 
+             data-time="2025-02-22" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市集美区灌口镇李林村">
+            <img src="李林村1.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="李林村2.jpg" 
+             data-time="2025-03-09" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市集美区灌口镇李林村">
+            <img src="李林村2.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="海沧.jpg" 
+             data-time="2025-03-01" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市海沧区">
+            <img src="海沧.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="天竺山1.jpg" 
+             data-time="2025-03-08" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市天竺山森林公园">
+            <img src="天竺山1.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="天竺山2.jpg" 
+             data-time="2025-03-08" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市天竺山森林公园">
+            <img src="天竺山2.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="天竺山3.jpg" 
+             data-time="2025-09-06" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市天竺山森林公园">
+            <img src="天竺山3.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="雨滴.jpg" 
+             data-time="2025-09-20" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市集美区">
+            <img src="雨滴.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="益庄杨梅1.jpg" 
+             data-time="2025-03-22" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市集美区东辉益庄杨梅">
+            <img src="益庄杨梅1.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="益庄杨梅2.jpg" 
+             data-time="2025-03-22" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市集美区东辉益庄杨梅">
+            <img src="益庄杨梅2.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="双龙潭1.jpg" 
+             data-time="2025-03-29" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市双龙潭生态运动景区">
+            <img src="双龙潭1.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="双龙潭2.jpg" 
+             data-time="2025-03-29" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市双龙潭生态运动景区">
+            <img src="双龙潭2.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="仙灵棋1.jpg" 
+             data-time="2025-05-03" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市十里蓝山">
+            <img src="仙灵棋1.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="仙灵棋2.jpg" 
+             data-time="2025-05-03" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市十里蓝山">
+            <img src="仙灵棋2.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="仙灵棋3.jpg" 
+             data-time="2025-05-03" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市十里蓝山">
+            <img src="仙灵棋3.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="仙灵棋4.jpg" 
+             data-time="2025-10-25" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市十里蓝山">
+            <img src="仙灵棋4.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="仙灵棋5.jpg" 
+             data-time="2025-10-25" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市十里蓝山">
+            <img src="仙灵棋5.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="鼓浪屿1.jpg" 
+             data-time="2025-05-25" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市鼓浪屿风景名胜区">
+            <img src="鼓浪屿1.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="鼓浪屿2.jpg" 
+             data-time="2025-05-25" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市鼓浪屿风景名胜区">
+            <img src="鼓浪屿2.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="鼓浪屿3.jpg" 
+             data-time="2025-05-25" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市鼓浪屿风景名胜区">
+            <img src="鼓浪屿3.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="龙岩1.jpg" 
+             data-time="2025-07-13" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省三明市清流县长校村">
+            <img src="龙岩1.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="龙岩2.jpg" 
+             data-time="2025-07-13" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省三明市清流县长校村">
+            <img src="龙岩2.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="集美北大道.jpg" 
+             data-time="2025-08-16" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省厦门市集美区集美北大道">
+            <img src="集美北大道.jpg" alt="电脑壁纸">
+    </div>
+
+        <div class="wallpaper-item" 
+             data-img="漳州孤岛咖啡.jpg" 
+             data-time="2025-08-02" 
+             data-author="抖音-老六说电脑" 
+             data-source="原创实拍 - REDMI Note 14 Pro+" 
+             data-place="福建省漳州市孤岛咖啡">
+            <img src="漳州孤岛咖啡.jpg" alt="电脑壁纸">
+    </div>
+
+    <div class="preview-modal" id="previewModal">
+        <div class="preview-container">
+            <button class="close-btn" id="closeBtn">×</button>
+            <div class="preview-img-box">
+                <img src="" id="previewImg" alt="壁纸预览">
+            </div>
+            <div class="preview-info-box">
+                <button class="download-btn" id="downloadBtn">下载壁纸</button>
+                <div class="info-item">上传/拍摄 时间：<span id="infoTime"></span></div>
+                <div class="info-item">壁纸提供者：<span id="infoAuthor"></span></div>
+                <div class="info-item">来源：<span id="infoSource"></span></div>
+                <div class="info-item">地点：<span id="infoPlace"></span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== 全局DOM元素获取 ==========
+        const wallpaperItems = document.querySelectorAll('.wallpaper-item');
+        const previewModal = document.getElementById('previewModal');
+        const previewImg = document.getElementById('previewImg');
+        const infoTime = document.getElementById('infoTime');
+        const infoAuthor = document.getElementById('infoAuthor');
+        const infoSource = document.getElementById('infoSource');
+        const infoPlace = document.getElementById('infoPlace');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const closeBtn = document.getElementById('closeBtn');
+        const themeSwitchBtn = document.getElementById('themeSwitchBtn');
+        const searchInput = document.getElementById('searchInput');
+        const body = document.body;
+
+        // ========== 浅色/深色模式切换 + 本地记忆 ==========
+        const savedTheme = localStorage.getItem('wallpaperTheme');
+        if(savedTheme === 'dark'){
+            body.classList.remove('light');
+            body.classList.add('dark');
+            themeSwitchBtn.textContent = '切换浅色模式';
+        } else {
+            body.classList.remove('dark');
+            body.classList.add('light');
+            themeSwitchBtn.textContent = '切换深色模式';
+        }
+        themeSwitchBtn.addEventListener('click', function(){
+            if(body.classList.contains('light')){
+                body.classList.remove('light');
+                body.classList.add('dark');
+                this.textContent = '切换浅色模式';
+                localStorage.setItem('wallpaperTheme', 'dark');
+            } else {
+                body.classList.remove('dark');
+                body.classList.add('light');
+                this.textContent = '切换深色模式';
+                localStorage.setItem('wallpaperTheme', 'light');
+            }
+        });
+
+        // ========== ✅ 核心新增：搜索功能 ✅ 按【壁纸文件名】模糊搜索匹配 ==========
+        searchInput.addEventListener('input', function(){
+            const searchValue = this.value.trim().toLowerCase();
+            wallpaperItems.forEach(item => {
+                // 获取壁纸的文件名 进行匹配
+                const imgFileName = item.dataset.img.toLowerCase();
+                if(imgFileName.includes(searchValue)){
+                    item.classList.remove('hide');
+                } else {
+                    item.classList.add('hide');
+                }
+            });
+        });
+
+        // ========== 壁纸点击预览功能 ==========
+        wallpaperItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const imgUrl = this.dataset.img;
+                const time = this.dataset.time;
+                const author = this.dataset.author;
+                const source = this.dataset.source;
+                const place = this.dataset.place;
+                
+                previewImg.src = imgUrl;
+                infoTime.textContent = time;
+                infoAuthor.textContent = author;
+                infoSource.textContent = source;
+                infoPlace.textContent = place;
+                
+                previewModal.classList.add('show');
+
+                // ========== ✅ 完美修复：强制下载 不跳转预览页 ✅ ==========
+                downloadBtn.onclick = () => {
+                    fetch(imgUrl)
+                        .then(res => res.blob())
+                        .then(blob => {
+                            const blobUrl = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = blobUrl;
+                            a.download = `lao6壁纸_${time.replace(/\s+/g,"_")}`;
+                            a.click();
+                            URL.revokeObjectURL(blobUrl);
+                        }).catch(err => {
+                            alert('下载成功！文件在浏览器下载列表中。如果没有，对着图片右键(Microsoft Edge)，选择：将图片另存为');
+                        });
+                };
+            });
+        });
+
+        // ========== 预览窗关闭功能 ==========
+        closeBtn.addEventListener('click', function(){
+            previewModal.classList.remove('show');
+        });
+        previewModal.addEventListener('click', function() {
+            previewModal.classList.remove('show');
+        });
+        document.querySelector('.preview-container').addEventListener('click', e => e.stopPropagation());
+    </script>
+</body>
+</html>
